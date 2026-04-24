@@ -64,33 +64,39 @@ export default function Capture() {
     const email = form.email.trim().toLowerCase();
     const phone = form.phone;
 
-    // Check duplicates
-    const [byEmail, byPhone] = await Promise.all([
-      base44.entities.GiftVoucher.filter({ email }),
-      base44.entities.GiftVoucher.filter({ phone })
-    ]);
+    try {
+      // Check duplicates
+      const [byEmail, byPhone] = await Promise.all([
+        base44.entities.GiftVoucher.filter({ email }),
+        base44.entities.GiftVoucher.filter({ phone })
+      ]);
 
-    if (byEmail.length > 0) {
-      setErrors({ email: 'Este e-mail já resgatou um vale-presente' });
+      if (byEmail.length > 0) {
+        setErrors({ email: 'Este e-mail já resgatou um vale-presente' });
+        setSubmitting(false);
+        return;
+      }
+      if (byPhone.length > 0) {
+        setErrors({ phone: 'Este WhatsApp já resgatou um vale-presente' });
+        setSubmitting(false);
+        return;
+      }
+
+      const code = generateCode();
+      const voucher = await base44.entities.GiftVoucher.create({
+        full_name: form.full_name.trim(),
+        email,
+        phone,
+        code,
+        status: 'emitido'
+      });
+
+      navigate(`/vale/${voucher.id}`);
+    } catch (err) {
+      console.error('Erro ao gerar vale-presente:', err);
+      setErrors({ form: 'Ocorreu um erro ao gerar seu vale. Tente novamente em instantes.' });
       setSubmitting(false);
-      return;
     }
-    if (byPhone.length > 0) {
-      setErrors({ phone: 'Este WhatsApp já resgatou um vale-presente' });
-      setSubmitting(false);
-      return;
-    }
-
-    const code = generateCode();
-    const voucher = await base44.entities.GiftVoucher.create({
-      full_name: form.full_name.trim(),
-      email,
-      phone,
-      code,
-      status: 'emitido'
-    });
-
-    navigate(`/vale/${voucher.id}`);
   };
 
   return (
@@ -169,6 +175,10 @@ export default function Capture() {
             >
               {submitting ? 'Gerando vale...' : 'Resgatar meu vale-presente'}
             </Button>
+
+            {errors.form && (
+              <p className="text-xs text-destructive text-center mt-2">{errors.form}</p>
+            )}
           </form>
         </div>
 
