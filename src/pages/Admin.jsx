@@ -53,6 +53,15 @@ export default function Admin() {
     setVouchers((prev) => prev.map((v) => (v.id === voucher.id ? { ...v, status: newStatus } : v)));
   };
 
+  const handleDelete = async (voucher) => {
+    const confirmed = window.confirm(
+      `Tem certeza que deseja excluir o cadastro de ${voucher.full_name}?\n\nEsta ação removerá todos os dados do lead permanentemente e não poderá ser desfeita.`
+    );
+    if (!confirmed) return;
+    await base44.entities.GiftVoucher.delete(voucher.id);
+    setVouchers((prev) => prev.filter((v) => v.id !== voucher.id));
+  };
+
   const filtered = vouchers.filter((v) => {
     const q = search.toLowerCase();
     const matchSearch =
@@ -201,6 +210,7 @@ export default function Admin() {
           vouchers={filtered}
           loading={loading}
           onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
         />
       </main>
     </div>

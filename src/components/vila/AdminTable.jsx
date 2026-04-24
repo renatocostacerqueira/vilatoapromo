@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Check, RotateCcw } from 'lucide-react';
+import { MessageCircle, Check, RotateCcw, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 const statusStyle = {
@@ -20,7 +20,7 @@ const buildWhatsAppUrl = (voucher) => {
   return `https://wa.me/${fullNumber}?text=${encodeURIComponent(message)}`;
 };
 
-export default function AdminTable({ vouchers, loading, onStatusChange }) {
+export default function AdminTable({ vouchers, loading, onStatusChange, onDelete }) {
   if (loading) {
     return (
       <div className="bg-white rounded-2xl p-16 text-center border border-toa-gold/10">
@@ -114,6 +114,13 @@ export default function AdminTable({ vouchers, loading, onStatusChange }) {
                         Reverter
                       </Button>
                     )}
+                    <button
+                      onClick={() => onDelete(v)}
+                      title="Excluir cadastro"
+                      className="inline-flex items-center justify-center w-9 h-9 rounded-full text-destructive/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </Td>
               </tr>
@@ -172,6 +179,13 @@ export default function AdminTable({ vouchers, loading, onStatusChange }) {
                   Reverter
                 </Button>
               )}
+              <button
+                onClick={() => onDelete(v)}
+                title="Excluir cadastro"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full text-destructive/70 bg-destructive/5 hover:bg-destructive/10 hover:text-destructive transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           </div>
         ))}
