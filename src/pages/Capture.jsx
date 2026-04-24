@@ -98,8 +98,8 @@ export default function Capture() {
       {/* Hero image */}
       <div className="relative h-[40vh] md:h-[50vh] overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=1600&q=80"
-          alt="Vila Toá"
+          src="https://media.base44.com/images/public/69eb50b879112948be76e574/ca22df521_422353874.jpg"
+          alt="Vila Toá — vista aérea"
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#362822]/25 via-transparent to-[#F7F4EF]" />

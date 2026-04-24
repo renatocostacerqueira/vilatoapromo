@@ -9,7 +9,7 @@ import VoucherCard from '@/components/vila/VoucherCard';
 import VoucherRules from '@/components/vila/VoucherRules';
 
 // Vila Toá WhatsApp number — digits only, with country code
-const VILA_TOA_WHATSAPP = '5500000000000';
+const VILA_TOA_WHATSAPP = '556299237671';
 
 export default function Voucher() {
   const { id } = useParams();
@@ -84,8 +84,8 @@ export default function Voucher() {
       {/* Top image */}
       <div className="relative h-[32vh] overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1600&q=80"
-          alt=""
+          src="https://media.base44.com/images/public/69eb50b879112948be76e574/a2a09dcef_Vila-Toa-site-231-scaled1.jpg"
+          alt="Vila Toá — vista interna"
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#362822]/30 via-[#362822]/10 to-[#F7F4EF]" />
