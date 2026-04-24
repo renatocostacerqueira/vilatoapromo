@@ -10,7 +10,11 @@ const statusStyle = {
 
 const buildWhatsAppUrl = (voucher) => {
   const firstName = (voucher.full_name || '').trim().split(' ')[0] || '';
-  const message = `Olá, ${firstName}! Aqui é da Vila Toá. Vimos que você resgatou seu vale-presente de R$150,00. Queremos te ajudar com sua experiência.`;
+  const message =
+    `Olá, ${firstName}! Aqui é da Vila Toá. ` +
+    `Vimos que você resgatou seu vale-presente de R$150,00. ` +
+    `Seu código é *${voucher.code}* — guarde-o, pois será necessário no momento da reserva. ` +
+    `Queremos te ajudar com sua experiência.`;
   const digits = (voucher.phone || '').replace(/\D/g, '');
   const fullNumber = digits.length <= 11 ? `55${digits}` : digits;
   return `https://wa.me/${fullNumber}?text=${encodeURIComponent(message)}`;
