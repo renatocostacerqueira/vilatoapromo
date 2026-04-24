@@ -1,11 +1,19 @@
 import React from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { MessageCircle, Check, RotateCcw } from 'lucide-react';
 import { format } from 'date-fns';
 
 const statusStyle = {
   emitido: 'bg-toa-sage/10 text-toa-sage',
-  resgatado: 'bg-toa-gold/15 text-toa-gold',
-  expirado: 'bg-toa-ink/10 text-toa-ink/70'
+  utilizado: 'bg-toa-gold/15 text-toa-gold'
+};
+
+const buildWhatsAppUrl = (voucher) => {
+  const firstName = (voucher.full_name || '').trim().split(' ')[0] || '';
+  const message = `Olá, ${firstName}! Aqui é da Vila Toá. Vimos que você resgatou seu vale-presente de R$150,00. Queremos te ajudar com sua experiência.`;
+  const digits = (voucher.phone || '').replace(/\D/g, '');
+  const fullNumber = digits.length <= 11 ? `55${digits}` : digits;
+  return `https://wa.me/${fullNumber}?text=${encodeURIComponent(message)}`;
 };
 
 export default function AdminTable({ vouchers, loading, onStatusChange }) {
@@ -34,11 +42,12 @@ export default function AdminTable({ vouchers, loading, onStatusChange }) {
           <thead className="bg-toa-sand/60">
             <tr className="text-left">
               <Th>Nome</Th>
-              <Th>Contato</Th>
-              <Th>Presenteado</Th>
+              <Th>E-mail</Th>
+              <Th>WhatsApp</Th>
+              <Th>Data</Th>
               <Th>Código</Th>
               <Th>Status</Th>
-              <Th>Data</Th>
+              <Th className="text-right">Ações</Th>
             </tr>
           </thead>
           <tbody>
@@ -49,16 +58,9 @@ export default function AdminTable({ vouchers, loading, onStatusChange }) {
                 </Td>
                 <Td>
                   <p className="text-toa-ink">{v.email}</p>
-                  <p className="text-xs text-toa-ink/60">{v.phone}</p>
                 </Td>
                 <Td>
-                  <p className="text-toa-ink">{v.recipient_name || '—'}</p>
-                </Td>
-                <Td>
-                  <span className="font-serif tracking-wider text-toa-bark">{v.code}</span>
-                </Td>
-                <Td>
-                  <StatusSelect value={v.status} onChange={(s) => onStatusChange(v, s)} />
+                  <p className="text-toa-ink">{v.phone}</p>
                 </Td>
                 <Td>
                   <p className="text-xs text-toa-ink/70">
@@ -67,6 +69,48 @@ export default function AdminTable({ vouchers, loading, onStatusChange }) {
                   <p className="text-xs text-toa-ink/50">
                     {format(new Date(v.created_date), 'HH:mm')}
                   </p>
+                </Td>
+                <Td>
+                  <span className="font-serif tracking-wider text-toa-bark">{v.code}</span>
+                </Td>
+                <Td>
+                  <span className={`inline-block text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full ${statusStyle[v.status] || ''}`}>
+                    {v.status}
+                  </span>
+                </Td>
+                <Td>
+                  <div className="flex items-center justify-end gap-2">
+                    <a
+                      href={buildWhatsAppUrl(v)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Enviar mensagem no WhatsApp"
+                      className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-toa-sage/10 text-toa-sage hover:bg-toa-sage hover:text-white transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </a>
+                    {v.status === 'emitido' ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onStatusChange(v, 'utilizado')}
+                        className="h-9 rounded-full text-xs text-toa-bark hover:bg-toa-bark/5 px-3"
+                      >
+                        <Check className="w-3.5 h-3.5 mr-1.5" />
+                        Marcar utilizado
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onStatusChange(v, 'emitido')}
+                        className="h-9 rounded-full text-xs text-toa-ink/60 hover:bg-toa-ink/5 px-3"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+                        Reverter
+                      </Button>
+                    )}
+                  </div>
                 </Td>
               </tr>
             ))}
@@ -84,7 +128,7 @@ export default function AdminTable({ vouchers, loading, onStatusChange }) {
                 <p className="text-xs text-toa-ink/70 truncate">{v.email}</p>
                 <p className="text-xs text-toa-ink/60">{v.phone}</p>
               </div>
-              <span className={`text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full ${statusStyle[v.status] || ''}`}>
+              <span className={`text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full whitespace-nowrap ${statusStyle[v.status] || ''}`}>
                 {v.status}
               </span>
             </div>
@@ -94,10 +138,37 @@ export default function AdminTable({ vouchers, loading, onStatusChange }) {
                 {format(new Date(v.created_date), 'dd/MM/yy HH:mm')}
               </span>
             </div>
-            {v.recipient_name && (
-              <p className="text-xs text-toa-ink/60">Para: {v.recipient_name}</p>
-            )}
-            <StatusSelect value={v.status} onChange={(s) => onStatusChange(v, s)} />
+            <div className="flex items-center gap-2 pt-2">
+              <a
+                href={buildWhatsAppUrl(v)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 inline-flex items-center justify-center gap-2 h-10 rounded-full bg-toa-sage/10 text-toa-sage text-xs uppercase tracking-wider"
+              >
+                <MessageCircle className="w-4 h-4" />
+                WhatsApp
+              </a>
+              {v.status === 'emitido' ? (
+                <Button
+                  size="sm"
+                  onClick={() => onStatusChange(v, 'utilizado')}
+                  className="flex-1 h-10 rounded-full bg-toa-bark hover:bg-toa-bark/90 text-toa-sand text-xs uppercase tracking-wider"
+                >
+                  <Check className="w-3.5 h-3.5 mr-1.5" />
+                  Utilizado
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onStatusChange(v, 'emitido')}
+                  className="flex-1 h-10 rounded-full text-xs uppercase tracking-wider"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+                  Reverter
+                </Button>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -105,28 +176,13 @@ export default function AdminTable({ vouchers, loading, onStatusChange }) {
   );
 }
 
-function Th({ children }) {
+function Th({ children, className = '' }) {
   return (
-    <th className="px-5 py-4 text-[10px] uppercase tracking-[0.2em] text-toa-ink/60 font-medium">
+    <th className={`px-5 py-4 text-[10px] uppercase tracking-[0.2em] text-toa-ink/60 font-medium ${className}`}>
       {children}
     </th>
   );
 }
 function Td({ children }) {
   return <td className="px-5 py-4 align-top">{children}</td>;
-}
-
-function StatusSelect({ value, onChange }) {
-  return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className={`h-8 w-32 rounded-full border-0 text-xs font-medium ${statusStyle[value] || ''}`}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="emitido">Emitido</SelectItem>
-        <SelectItem value="resgatado">Resgatado</SelectItem>
-        <SelectItem value="expirado">Expirado</SelectItem>
-      </SelectContent>
-    </Select>
-  );
 }

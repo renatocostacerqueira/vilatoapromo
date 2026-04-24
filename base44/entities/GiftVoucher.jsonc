@@ -12,11 +12,11 @@
     },
     "phone": {
       "type": "string",
-      "description": "Telefone do cadastrado"
+      "description": "WhatsApp do cadastrado"
     },
     "recipient_name": {
       "type": "string",
-      "description": "Nome do presenteado"
+      "description": "Nome do presenteado (opcional)"
     },
     "code": {
       "type": "string",
@@ -26,8 +26,7 @@
       "type": "string",
       "enum": [
         "emitido",
-        "resgatado",
-        "expirado"
+        "utilizado"
       ],
       "default": "emitido",
       "description": "Status do vale-presente"

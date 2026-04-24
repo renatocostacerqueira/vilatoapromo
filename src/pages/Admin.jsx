@@ -60,19 +60,17 @@ export default function Admin() {
       v.full_name?.toLowerCase().includes(q) ||
       v.email?.toLowerCase().includes(q) ||
       v.phone?.toLowerCase().includes(q) ||
-      v.code?.toLowerCase().includes(q) ||
-      v.recipient_name?.toLowerCase().includes(q);
+      v.code?.toLowerCase().includes(q);
     const matchStatus = statusFilter === 'all' || v.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
   const exportCSV = () => {
-    const headers = ['Nome', 'E-mail', 'Telefone', 'Presenteado', 'Código', 'Status', 'Data'];
+    const headers = ['Nome', 'E-mail', 'WhatsApp', 'Código', 'Status', 'Data'];
     const rows = filtered.map((v) => [
       v.full_name || '',
       v.email || '',
       v.phone || '',
-      v.recipient_name || '',
       v.code || '',
       v.status || '',
       new Date(v.created_date).toLocaleString('pt-BR')
@@ -131,11 +129,13 @@ export default function Admin() {
     );
   }
 
+  const emitidos = vouchers.filter((v) => v.status === 'emitido').length;
+  const utilizados = vouchers.filter((v) => v.status === 'utilizado').length;
   const stats = {
     total: vouchers.length,
-    emitido: vouchers.filter((v) => v.status === 'emitido').length,
-    resgatado: vouchers.filter((v) => v.status === 'resgatado').length,
-    expirado: vouchers.filter((v) => v.status === 'expirado').length
+    emitidos,
+    utilizados,
+    pendentes: emitidos
   };
 
   return (
@@ -161,10 +161,10 @@ export default function Admin() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-          <StatCard label="Total" value={stats.total} />
-          <StatCard label="Emitidos" value={stats.emitido} />
-          <StatCard label="Resgatados" value={stats.resgatado} accent />
-          <StatCard label="Expirados" value={stats.expirado} />
+          <StatCard label="Total de cadastros" value={stats.total} />
+          <StatCard label="Vouchers emitidos" value={stats.emitidos} />
+          <StatCard label="Utilizados" value={stats.utilizados} accent />
+          <StatCard label="Pendentes" value={stats.pendentes} />
         </div>
 
         {/* Controls */}
@@ -172,7 +172,7 @@ export default function Admin() {
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-toa-ink/40" />
             <Input
-              placeholder="Buscar por nome, e-mail, telefone ou código"
+              placeholder="Buscar por nome, e-mail, WhatsApp ou código"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="h-11 pl-11 rounded-full border-toa-gold/20 bg-white focus-visible:ring-toa-sage"
@@ -185,8 +185,7 @@ export default function Admin() {
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
               <SelectItem value="emitido">Emitido</SelectItem>
-              <SelectItem value="resgatado">Resgatado</SelectItem>
-              <SelectItem value="expirado">Expirado</SelectItem>
+              <SelectItem value="utilizado">Utilizado</SelectItem>
             </SelectContent>
           </Select>
           <Button
