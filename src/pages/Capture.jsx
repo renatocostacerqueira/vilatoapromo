@@ -12,34 +12,80 @@ import Ornament from '@/components/vila/Ornament';
 const generateCode = () => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 6; i++) {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
-  return `TOA-${code}`;
+  return `VILATOA-${code}`;
 };
+
+const maskPhone = (value) => {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 2) return digits.length ? `(${digits}` : '';
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
+
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 export default function Capture() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    full_name: '',
-    email: '',
-    phone: '',
-    recipient_name: ''
-  });
+  const [form, setForm] = useState({ full_name: '', email: '', phone: '' });
+  const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (field) => (e) => {
-    setForm({ ...form, [field]: e.target.value });
+    const value = field === 'phone' ? maskPhone(e.target.value) : e.target.value;
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: null }));
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!form.full_name.trim()) errs.full_name = 'Informe seu nome completo';
+    if (!form.email.trim()) errs.email = 'Informe seu e-mail';
+    else if (!isValidEmail(form.email.trim())) errs.email = 'E-mail inválido';
+    const phoneDigits = form.phone.replace(/\D/g, '');
+    if (!phoneDigits) errs.phone = 'Informe seu WhatsApp';
+    else if (phoneDigits.length < 10) errs.phone = 'WhatsApp inválido';
+    return errs;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.full_name || !form.email || !form.phone) return;
+    const errs = validate();
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
+
     setSubmitting(true);
+
+    const email = form.email.trim().toLowerCase();
+    const phone = form.phone;
+
+    // Check duplicates
+    const [byEmail, byPhone] = await Promise.all([
+      base44.entities.GiftVoucher.filter({ email }),
+      base44.entities.GiftVoucher.filter({ phone })
+    ]);
+
+    if (byEmail.length > 0) {
+      setErrors({ email: 'Este e-mail já resgatou um vale-presente' });
+      setSubmitting(false);
+      return;
+    }
+    if (byPhone.length > 0) {
+      setErrors({ phone: 'Este WhatsApp já resgatou um vale-presente' });
+      setSubmitting(false);
+      return;
+    }
 
     const code = generateCode();
     const voucher = await base44.entities.GiftVoucher.create({
-      ...form,
+      full_name: form.full_name.trim(),
+      email,
+      phone,
       code,
       status: 'emitido'
     });
@@ -50,20 +96,19 @@ export default function Capture() {
   return (
     <div className="min-h-screen bg-toa-sand">
       {/* Hero image */}
-      <div className="relative h-[45vh] md:h-[55vh] overflow-hidden">
+      <div className="relative h-[40vh] md:h-[50vh] overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=1600&q=80"
           alt="Vila Toá"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#362822]/20 via-transparent to-[#F7F4EF]" />
-
+        <div className="absolute inset-0 bg-gradient-to-b from-[#362822]/25 via-transparent to-[#F7F4EF]" />
         <div className="relative h-full flex flex-col items-center justify-center px-6 text-center">
           <Logo variant="light" />
         </div>
       </div>
 
-      {/* Form */}
+      {/* Content */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -75,29 +120,54 @@ export default function Capture() {
             <div className="flex justify-center mb-4">
               <Leaf className="w-5 h-5 text-toa-gold" strokeWidth={1.5} />
             </div>
-            <h1 className="font-serif text-3xl md:text-4xl text-toa-bark leading-tight mb-3">
-              Um presente<br />
-              <span className="italic text-toa-gold">à altura do sentir</span>
+            <h1 className="font-serif text-3xl md:text-[2.25rem] text-toa-bark leading-[1.15] mb-4">
+              Seu presente da <br />
+              <span className="italic text-toa-gold">Vila Toá</span> está aqui.
             </h1>
             <Ornament className="my-5" />
-            <p className="text-sm leading-relaxed text-toa-ink/80 font-light">
-              Deixe seus dados e receba um vale-presente exclusivo
-              para vivenciar a Vila Toá.
+            <p className="text-sm leading-relaxed text-toa-ink/85 font-light">
+              Preencha seus dados para resgatar seu vale-presente de
+              {' '}<span className="text-toa-bark font-medium">R$ 150,00</span>{' '}
+              para usar em hospedagem.
+            </p>
+            <p className="text-xs leading-relaxed text-toa-ink/65 font-light mt-4 italic">
+              Um benefício exclusivo para quem vive o beach tennis
+              e quer viver também um momento de descanso na Vila Toá.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <Field label="Nome completo" value={form.full_name} onChange={handleChange('full_name')} placeholder="Seu nome" required />
-            <Field label="E-mail" type="email" value={form.email} onChange={handleChange('email')} placeholder="voce@email.com" required />
-            <Field label="Telefone" value={form.phone} onChange={handleChange('phone')} placeholder="(00) 00000-0000" required />
-            <Field label="Nome do presenteado" value={form.recipient_name} onChange={handleChange('recipient_name')} placeholder="(opcional)" />
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+            <Field
+              label="Nome completo"
+              value={form.full_name}
+              onChange={handleChange('full_name')}
+              placeholder="Seu nome"
+              error={errors.full_name}
+            />
+            <Field
+              label="E-mail"
+              type="email"
+              value={form.email}
+              onChange={handleChange('email')}
+              placeholder="voce@email.com"
+              error={errors.email}
+            />
+            <Field
+              label="WhatsApp"
+              type="tel"
+              inputMode="numeric"
+              value={form.phone}
+              onChange={handleChange('phone')}
+              placeholder="(00) 00000-0000"
+              error={errors.phone}
+            />
 
             <Button
               type="submit"
               disabled={submitting}
               className="w-full h-12 rounded-full bg-toa-sage hover:bg-toa-sage/90 text-white font-sans tracking-wide text-sm uppercase transition-all duration-300 mt-4"
             >
-              {submitting ? 'Gerando vale...' : 'Receber vale-presente'}
+              {submitting ? 'Gerando vale...' : 'Resgatar meu vale-presente'}
             </Button>
           </form>
         </div>
@@ -110,7 +180,7 @@ export default function Capture() {
   );
 }
 
-function Field({ label, ...props }) {
+function Field({ label, error, ...props }) {
   return (
     <div className="space-y-2">
       <Label className="text-xs uppercase tracking-[0.15em] text-toa-ink/70 font-medium">
@@ -118,8 +188,11 @@ function Field({ label, ...props }) {
       </Label>
       <Input
         {...props}
-        className="h-12 rounded-xl border-toa-gold/20 bg-toa-sand/50 focus-visible:ring-toa-sage focus-visible:border-toa-sage text-toa-bark placeholder:text-toa-ink/40"
+        className={`h-12 rounded-xl bg-toa-sand/50 focus-visible:ring-toa-sage text-toa-bark placeholder:text-toa-ink/40 ${
+          error ? 'border-destructive focus-visible:border-destructive' : 'border-toa-gold/20 focus-visible:border-toa-sage'
+        }`}
       />
+      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
     </div>
   );
 }
