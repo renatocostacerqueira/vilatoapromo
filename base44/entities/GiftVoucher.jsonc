@@ -1,0 +1,42 @@
+{
+  "name": "GiftVoucher",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Nome completo de quem est\u00e1 cadastrando"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-mail do cadastrado"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefone do cadastrado"
+    },
+    "recipient_name": {
+      "type": "string",
+      "description": "Nome do presenteado"
+    },
+    "code": {
+      "type": "string",
+      "description": "C\u00f3digo \u00fanico do vale-presente"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "emitido",
+        "resgatado",
+        "expirado"
+      ],
+      "default": "emitido",
+      "description": "Status do vale-presente"
+    }
+  },
+  "required": [
+    "full_name",
+    "email",
+    "phone",
+    "code"
+  ]
+}
